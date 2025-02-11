@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Helper for Conf</string>
+    <string name="add_recipe">Добавить рецепт</string>
+    <string name="recipe_name_hint">Название рецепта</string>
+    <string name="recipe_description_hint">Описание рецепта</string>
+    <string name="edit_recipe">Редактировать рецепт</string>
+    <string name="delete_recipe">Удалить рецепт</string>
+    <string name="edit_chapter">Редактировать главу</string>
+    <string name="delete_chapter">Удалить главу</string>
+    <string-array name="ingredient_units">
+        <item>гр</item>
+        <item>кг</item>
+        <item>мл</item>
+        <item>л</item>
+        <item>ст. л.</item>
+        <item>ч. л.</item>
+        <item>шт</item>
+    </string-array>
+</resources>
