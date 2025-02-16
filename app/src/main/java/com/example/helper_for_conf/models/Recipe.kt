@@ -9,5 +9,5 @@ data class Recipe(
     val name: String,
     val description: String,
     val imageUri: String?,
-    val ingredients: List<Ingredient> // Добавляем список ингредиентов
+    val ingredients: List<Ingredient> // Используйте List<Ingredient>
 )

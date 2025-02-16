@@ -1,21 +1,23 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="8dp">
 
     <TextView
-        android:id="@+id/chapterName"
+        android:id="@+id/tvChapterTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp" />
+        android:text="Название главы"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/chapterDescription"
+        android:id="@+id/tvChapterDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="Описание главы"
         android:textSize="14sp"
-        android:textColor="@android:color/darker_gray" />
-
+        android:layout_marginTop="4dp" />
 </LinearLayout>

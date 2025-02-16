@@ -1,107 +1,96 @@
 package com.example.helper_for_conf.activities.recipes
 
+import ChapterViewModelFactory
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.helper_for_conf.R
 import com.example.helper_for_conf.adapters.ChapterAdapter
+import com.example.helper_for_conf.database.AppDatabase
 import com.example.helper_for_conf.databinding.ActivityRecipeDetailBinding
-import com.example.helper_for_conf.models.Chapter
 import com.example.helper_for_conf.models.Recipe
-import com.example.helper_for_conf.utils.ImageUtils
+import com.example.helper_for_conf.repository.ChapterRepository
+import com.example.helper_for_conf.viewmodels.ChapterViewModel
 import com.example.helper_for_conf.viewmodels.RecipeViewModel
 
 class RecipeDetailActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRecipeDetailBinding
-    private val viewModel: RecipeViewModel by viewModels()
+
+    // Инициализация базы данных и репозитория
+    private val database: AppDatabase by lazy {
+        AppDatabase.getDatabase(this)
+    }
+
+    private val repository: ChapterRepository by lazy {
+        ChapterRepository(database.chapterDao(), database.ingredientDao())
+    }
+
+    private val viewModel: ChapterViewModel by viewModels {
+        ChapterViewModelFactory(repository)
+    }
+
+    private val recipeViewModel: RecipeViewModel by viewModels()
+
+    private val recipeId: Long by lazy {
+        intent.getLongExtra("recipeId", -1)
+    }
+
     private lateinit var chapterAdapter: ChapterAdapter
+
+    private lateinit var recipe: Recipe
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Инициализация View Binding
         binding = ActivityRecipeDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         // Настройка Toolbar
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true) // Кнопка "Назад"
 
-        // Получение ID рецепта из Intent
-        val recipeId = intent.getLongExtra("recipe_id", -1)
-        if (recipeId == -1L) {
-            Log.e("RecipeDetailActivity", "Invalid recipe ID")
-            finish() // Закрываем активность, если ID не передан
-            return
+        // Загрузка глав для текущего рецепта
+        viewModel.loadChaptersByRecipeId(recipeId)
+
+        // Включите меню в тулбаре
+        setSupportActionBar(binding.toolbar)
+
+        // Инициализация адаптера
+        chapterAdapter = ChapterAdapter()
+        binding.rvChapters.apply {
+            layoutManager = LinearLayoutManager(this@RecipeDetailActivity)
+            adapter = chapterAdapter
         }
 
-        // Загрузка данных рецепта
-        viewModel.getRecipeById(recipeId).observe(this) { recipe ->
-            if (recipe != null) {
-                // Устанавливаем название рецепта в Toolbar
-                supportActionBar?.title = recipe.name
+        // Загрузка глав по recipeId
+        viewModel.loadChaptersByRecipeId(recipeId)
 
-                // Отображаем описание рецепта
-                binding.recipeDescription.text = recipe.description
+        // Подписка на LiveData
+        observeChapters()
 
-                // Загрузка изображения с помощью ImageUtils
-                recipe.imageUri?.let { uri ->
-                    ImageUtils.loadImage(
-                        this,
-                        uri,
-                        binding.recipeImage,
-                        R.drawable.placeholder_image,
-                        R.drawable.error_image
-                    )
-                }
-            } else {
-                Log.e("RecipeDetailActivity", "Recipe not found")
-                finish() // Закрываем активность, если рецепт не найден
-            }
-        }
-
-        // Инициализация RecyclerView для глав
-        chapterAdapter = ChapterAdapter(emptyList()) { chapter ->
-            // Обработка клика на главу (например, переход к редактированию главы)
-            val intent = Intent(this, ChapterEditActivity::class.java)
-            intent.putExtra("chapter_id", chapter.id)
-            startActivity(intent)
-        }
-
-        binding.chapterRecyclerView.layoutManager = LinearLayoutManager(this)
-        binding.chapterRecyclerView.adapter = chapterAdapter
-
-        // Загрузка данных глав
-        loadChapters()
-
-        // Обработка нажатия на кнопку "Добавить главу"
+        // Кнопка добавления главы
         binding.btnAddChapter.setOnClickListener {
-            val intent = Intent(this, ChapterEditActivity::class.java)
-            intent.putExtra("recipe_id", recipeId)
-            startActivity(intent)
+            openChapterEditActivity()
         }
     }
 
-    private fun loadChapters() {
-        val recipeId = intent.getLongExtra("recipe_id", -1)
-        if (recipeId != -1L) {
-            viewModel.getChaptersByRecipeId(recipeId).observe(this) { chapters ->
-                Log.d("RecipeDetailActivity", "Chapters loaded: ${chapters.size}")
-                chapterAdapter.updateChapters(chapters)
-            }
-        } else {
-            Log.e("RecipeDetailActivity", "Invalid recipe ID")
-        }
+
+    private fun observeChapters() {
+        viewModel.chapters.observe(this, Observer { chapters ->
+            chapterAdapter.updateChapters(chapters)
+        })
     }
 
-    // Создание меню с кнопками редактирования и удаления
+    private fun openChapterEditActivity() {
+        val intent = Intent(this, ChapterEditActivity::class.java)
+        intent.putExtra("recipeId", recipeId)
+        startActivity(intent)
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_recipe_detail, menu)
         return true
@@ -109,47 +98,15 @@ class RecipeDetailActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            android.R.id.home -> {
-                onBackPressed() // Закрываем активность при нажатии на кнопку "Назад"
-                true
-            }
             R.id.action_edit -> {
-                // Переход к редактированию рецепта
-                val recipeId = intent.getLongExtra("recipe_id", -1)
-                if (recipeId != -1L) {
-                    val intent = Intent(this, RecipeEditActivity::class.java)
-                    intent.putExtra("recipe_id", recipeId)
-                    startActivity(intent)
-                }
+                // Открыть экран редактирования рецепта
                 true
             }
             R.id.action_delete -> {
-                // Показываем диалог подтверждения удаления
-                showDeleteConfirmationDialog()
+                // Удалить рецепт
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    private fun showDeleteConfirmationDialog() {
-        val recipeId = intent.getLongExtra("recipe_id", -1)
-        if (recipeId == -1L) return
-
-        AlertDialog.Builder(this)
-            .setTitle("Удаление рецепта")
-            .setMessage("Вы уверены, что хотите удалить этот рецепт?")
-            .setPositiveButton("Удалить") { _, _ ->
-                // Удаляем рецепт, если пользователь подтвердил
-                viewModel.getRecipeById(recipeId).observe(this) { recipe ->
-                    if (recipe != null) {
-                        viewModel.delete(recipe)
-                        finish() // Закрываем активность после удаления
-                    }
-                }
-            }
-            .setNegativeButton("Отмена", null) // Ничего не делаем, если пользователь отменил
-            .create()
-            .show()
     }
 }

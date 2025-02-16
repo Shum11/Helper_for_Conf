@@ -1,25 +1,21 @@
 package com.example.helper_for_conf.database
 
-import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import android.content.Context
 import androidx.room.TypeConverters
 import com.example.helper_for_conf.models.Chapter
 import com.example.helper_for_conf.models.Ingredient
 import com.example.helper_for_conf.models.Recipe
 
-@Database(
-    entities = [Recipe::class, Chapter::class, Ingredient::class],
-    version = 2, // Увеличьте версию базы данных
-    exportSchema = false
-)
-@TypeConverters(Converters::class) // Добавьте эту аннотацию
+@Database(entities = [Ingredient::class, Recipe::class, Chapter::class], version = 3, exportSchema = false)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun recipeDao(): RecipeDao
     abstract fun chapterDao(): ChapterDao
     abstract fun ingredientDao(): IngredientDao
+    abstract fun recipeDao(): RecipeDao
 
     companion object {
         @Volatile
@@ -31,8 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "recipe_database"
-                )
-                    .fallbackToDestructiveMigration() // Опционально: для упрощения миграций
+                ).fallbackToDestructiveMigration() // Удаляет старую базу данных при изменении схемы
                     .build()
                 INSTANCE = instance
                 instance

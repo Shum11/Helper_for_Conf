@@ -11,12 +11,12 @@ import com.example.helper_for_conf.models.Recipe
 import com.example.helper_for_conf.utils.ImageUtils
 
 class RecipeAdapter(
-    private var recipeList: List<Recipe>,
+    private var recipes: List<Recipe>,
     private val onItemClick: (Recipe) -> Unit
 ) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
 
     inner class RecipeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val recipeImage: ImageView = itemView.findViewById(R.id.recipe_image)
+        private val recipeImage: ImageView = itemView.findViewById(R.id.recipe_image_item)
         private val recipeName: TextView = itemView.findViewById(R.id.recipe_name)
         private val recipeDescription: TextView = itemView.findViewById(R.id.recipe_description)
 
@@ -41,21 +41,19 @@ class RecipeAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
+        val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_recipe, parent, false)
-        return RecipeViewHolder(itemView)
+        return RecipeViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: RecipeViewHolder, position: Int) {
-        holder.bind(recipeList[position])
+        holder.bind(recipes[position])
     }
 
-    override fun getItemCount(): Int {
-        return recipeList.size
-    }
+    override fun getItemCount(): Int = recipes.size
 
     fun updateRecipes(newRecipes: List<Recipe>) {
-        recipeList = newRecipes
+        recipes = newRecipes
         notifyDataSetChanged()
     }
 }

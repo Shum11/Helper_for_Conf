@@ -1,6 +1,5 @@
 package com.example.helper_for_conf.adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,41 +8,34 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.helper_for_conf.R
 import com.example.helper_for_conf.models.Chapter
 
-class ChapterAdapter(
-    private var chapters: List<Chapter>,
-    private val onItemClick: (Chapter) -> Unit
-) : RecyclerView.Adapter<ChapterAdapter.ViewHolder>() {
+class ChapterAdapter : RecyclerView.Adapter<ChapterAdapter.ChapterViewHolder>() {
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val chapterName: TextView = itemView.findViewById(R.id.chapterName)
-        private val chapterDescription: TextView = itemView.findViewById(R.id.chapterDescription)
+    private var chapters: List<Chapter> = emptyList()
+
+    inner class ChapterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvTitle: TextView = itemView.findViewById(R.id.tvChapterTitle)
+        private val tvDescription: TextView = itemView.findViewById(R.id.tvChapterDescription)
 
         fun bind(chapter: Chapter) {
-            chapterName.text = chapter.name
-            chapterDescription.text = chapter.description
-            itemView.setOnClickListener {
-                onItemClick(chapter)
-            }
+            tvTitle.text = chapter.title
+            tvDescription.text = chapter.description
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChapterViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_chapter, parent, false)
-        return ViewHolder(view)
+        return ChapterViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ChapterViewHolder, position: Int) {
         holder.bind(chapters[position])
     }
 
-    override fun getItemCount(): Int {
-        return chapters.size
-    }
+    override fun getItemCount(): Int = chapters.size
 
-    fun updateChapters(newChapters: List<Chapter>) {
-        Log.d("ChapterAdapter", "Updating chapters: ${newChapters.size}")
-        chapters = newChapters
+    fun updateChapters(chapters: List<Chapter>) {
+        this.chapters = chapters
         notifyDataSetChanged()
     }
 }

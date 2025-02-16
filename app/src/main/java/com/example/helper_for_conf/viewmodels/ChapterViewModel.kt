@@ -1,49 +1,34 @@
 package com.example.helper_for_conf.viewmodels
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.helper_for_conf.database.AppDatabase
 import com.example.helper_for_conf.models.Chapter
+import com.example.helper_for_conf.models.Ingredient
 import com.example.helper_for_conf.repository.ChapterRepository
 import kotlinx.coroutines.launch
 
-class ChapterViewModel(application: Application) : AndroidViewModel(application) {
+class ChapterViewModel(private val repository: ChapterRepository) : ViewModel() {
 
-    private val repository: ChapterRepository
+    // LiveData для списка глав
+    lateinit var chapters: LiveData<List<Chapter>>
 
-    init {
-        val chapterDao = AppDatabase.getDatabase(application).chapterDao()
-        repository = ChapterRepository(chapterDao)
+    // Сохранение главы
+    fun insertChapter(chapter: Chapter) = viewModelScope.launch {
+        repository.insertChapter(chapter)
     }
 
-    fun getChaptersByRecipeId(recipeId: Long): LiveData<List<Chapter>> {
-        return repository.getChaptersByRecipeId(recipeId)
+    fun updateChapter(chapter: Chapter) = viewModelScope.launch {
+        repository.updateChapter(chapter)
     }
 
-    fun getChapterById(chapterId: Long): LiveData<Chapter> {
-        return repository.getChapterById(chapterId)
+    // Загрузка глав по recipeId
+    fun loadChaptersByRecipeId(recipeId: Long) {
+        chapters = repository.getChaptersByRecipeId(recipeId)
     }
 
-    fun insert(chapter: Chapter) = viewModelScope.launch {
-        Log.d("ChapterViewModel", "Calling repository.insert(chapter)")
-        repository.insert(chapter)
+    fun getIngredientsByChapterId(chapterId: Long): LiveData<List<Ingredient>> {
+        return repository.getIngredientsByChapterId(chapterId)
     }
 
-    fun update(chapter: Chapter) = viewModelScope.launch {
-        repository.update(chapter)
-    }
-
-    fun delete(chapter: Chapter) = viewModelScope.launch {
-        repository.delete(chapter)
-    }
-
-    // Метод для загрузки глав (например, из API)
-    fun loadChapters(recipeId: Long) {
-        viewModelScope.launch {
-            repository.loadChapters(recipeId)
-        }
-    }
 }

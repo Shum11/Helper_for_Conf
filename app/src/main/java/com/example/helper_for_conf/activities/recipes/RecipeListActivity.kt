@@ -3,12 +3,10 @@ package com.example.helper_for_conf.activities.recipes
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.helper_for_conf.adapters.RecipeAdapter
 import com.example.helper_for_conf.databinding.ActivityRecipeListBinding
-import com.example.helper_for_conf.models.Recipe
 import com.example.helper_for_conf.viewmodels.RecipeViewModel
 
 class RecipeListActivity : AppCompatActivity() {
@@ -24,11 +22,13 @@ class RecipeListActivity : AppCompatActivity() {
         binding = ActivityRecipeListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         // Инициализация RecyclerView
         recipeAdapter = RecipeAdapter(emptyList()) { recipe ->
             // Обработка клика на рецепт
             val intent = Intent(this, RecipeDetailActivity::class.java)
-            intent.putExtra("recipe_id", recipe.id)
+            val recipeId = recipe.id ?: -1L // Если recipe.id равен null, используйте -1L
+            intent.putExtra("recipe_id", recipeId)
             startActivity(intent)
         }
 
